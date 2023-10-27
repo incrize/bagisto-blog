@@ -1,0 +1,115 @@
+#Blog Related API
+extend type Query {
+    blogPosts(title: String @like, content: String @like, category_ids: [Int!] @builder(method: "\\CSCart\\Bagisto\\Blog\\Models\\Post@scopeInCategory")): [BlogPost!]!
+        @can(ability: "viewAny", model: "CSCart\\Bagisto\\Blog\\Models\\Post")
+        @paginate(model:"CSCart\\Bagisto\\Blog\\Models\\Post", scopes: ["readPolicy"])
+
+    blogPost(id: Int! @eq): BlogPost
+        @find(model:"CSCart\\Bagisto\\Blog\\Models\\Post")
+        @can(ability: "view", model: "CSCart\\Bagisto\\Blog\\Models\\Post")
+
+    blogCategories: [BlogCategory!]
+        @can(ability: "viewAny", model: "CSCart\\Bagisto\\Blog\\Models\\Category")
+        @all(model:"CSCart\\Bagisto\\Blog\\Models\\Category", scopes: ["readPolicy"])
+}
+
+extend type Mutation @guard {
+    blogPostCreate(input: BlogPostInput! @spread): BlogPost
+        @can(ability: "create", model: "CSCart\\Bagisto\\Blog\\Models\\Post")
+        @create(model: "CSCart\\Bagisto\\Blog\\Models\\Post")
+
+    blogPostUpdate(input: BlogPostInput! @spread): BlogPost
+        @can(ability: "update", model: "CSCart\\Bagisto\\Blog\\Models\\Post", find: "id")
+        @update(model: "CSCart\\Bagisto\\Blog\\Models\\Post")
+
+    blogPostDelete(id: ID!): BlogPost
+        @can(ability: "delete", model: "CSCart\\Bagisto\\Blog\\Models\\Post", find: "id")
+        @delete(model: "CSCart\\Bagisto\\Blog\\Models\\Post")
+
+    blogCategoryCreate(input: BlogCategoryInput! @spread): BlogCategory
+        @can(ability: "create", model: "CSCart\\Bagisto\\Blog\\Models\\Category")
+        @create(model: "CSCart\\Bagisto\\Blog\\Models\\Category")
+
+    blogCategoryUpdate(input: BlogCategoryInput! @spread): BlogCategory
+        @can(ability: "update", model: "CSCart\\Bagisto\\Blog\\Models\\Category", find: "id")
+        @update(model:"CSCart\\Bagisto\\Blog\\Models\\Category")
+
+    blogCategoryDelete(id: ID!): BlogCategory
+        @can(ability: "delete", model: "CSCart\\Bagisto\\Blog\\Models\\Category", find: "id")
+        @delete(model:"CSCart\\Bagisto\\Blog\\Models\\Category")
+}
+
+input BlogPostInput @validator(class: "CSCart\\Bagisto\\Blog\\Validators\\BlogPostInputValidator") {
+    id: ID
+    title: String
+    content: String
+    published_at: DateTime
+    categories: BlogBelongsToManyCategoriesRelationInput
+    tags: BlogHasManyTagsRelationInput
+}
+
+input BlogCategoryInput @validator(class: "CSCart\\Bagisto\\Blog\\Validators\\BlogCategoryInputValidator") {
+    id: ID
+    title: String
+    slug: String
+    status: BlogCategoryStatus
+}
+
+input BlogPostTagInput @validator(class: "CSCart\\Bagisto\\Blog\\Validators\\BlogPostTagInputValidator") {
+    title: String
+}
+
+input BlogHasManyTagsRelationInput {
+    create: [BlogPostTagInput!]
+    upsert: [BlogPostTagInput!]
+    update: [BlogPostTagInput!]
+    delete: [ID!]
+}
+
+input BlogBelongsToManyCategoriesRelationInput {
+    connect: [ID!]
+    sync: [ID!]
+    disconnect: [ID!]
+}
+
+type BlogPost {
+    id: ID!
+    title: String!
+    content: String!
+    created_at: DateTime!
+    updated_at: DateTime
+    published_at: DateTime
+    author_id: Int!
+    author: BlogPostAuthor!
+    categories: [BlogCategory!] @belongsToMany(relation: "categories", scopes: ["readPolicy"])
+    tags: [BlogPostTag!] @hasMany(relation: "tags")
+}
+
+type BlogPostAuthor {
+    id: ID!
+    name: String!
+    created_at: DateTime!
+    updated_at: DateTime
+}
+
+type BlogCategory {
+    id: ID!
+    title: String!
+    slug: String!
+    status: BlogCategoryStatus!
+    created_at: DateTime!
+    updated_at: DateTime
+}
+
+type BlogPostTag {
+    id: ID!
+    title: String!
+    post_id: ID!
+    created_at: DateTime!
+    updated_at: DateTime
+}
+
+enum BlogCategoryStatus {
+    ACTIVE @enum(value: A)
+    DISABLE @enum(value: D)
+}

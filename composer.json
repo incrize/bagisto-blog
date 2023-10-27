@@ -1,0 +1,30 @@
+{
+    "name": "cscart/bagisto-blog",
+    "description": "Simple blog add-on for Bagisto",
+    "license": "MIT",
+    "version": "0.1",
+    "require": {
+        "php": "^8.0",
+        "bagisto/graphql-api": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "CSCart\\Bagisto\\Blog\\": "src/",
+            "CSCart\\Bagisto\\Blog\\Database\\Seeders\\": "database/seeders"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CSCart\\Bagisto\\Blog\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "CSCart\\Bagisto\\Blog\\Providers\\BlogServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
